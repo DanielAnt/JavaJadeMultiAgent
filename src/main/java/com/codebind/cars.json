@@ -1,0 +1,113 @@
+{
+  "1": {
+    "carBrand": "Volkswagen",
+    "carModel": "Passat",
+    "carBodyType": "kombi",
+    "carEngineType": "disel",
+    "carEngineSize": "1.9",
+    "carProductionYear": "2008",
+    "carPrice": "17900"
+  },
+  "2": {
+    "carBrand": "Volkswagen",
+    "carModel": "Passat",
+    "carBodyType": "sedan",
+    "carEngineType": "benzyna",
+    "carEngineSize": "3.6",
+    "carProductionYear": "2012",
+    "carPrice": "36300"
+  },
+  "3": {
+    "carBrand": "Volkswagen",
+    "carModel": "Sharan",
+    "carBodyType": "Minivan",
+    "carEngineType": "disel",
+    "carEngineSize": "1.9",
+    "carProductionYear": "2005",
+    "carPrice": "18000"
+  },
+ 
+  "4": {
+    "carBrand": "Mercedes-Benz",
+    "carModel": "Klasa A",
+    "carBodyType": "hatchback",
+    "carEngineType": "benzyna",
+    "carEngineSize": "1.5",
+    "carProductionYear": "2006",
+    "carPrice": "12700"
+  },
+  "5": {
+    "carBrand": "Mercedes-Benz",
+    "carModel": "Klasa C",
+    "carBodyType": "sedan",
+    "carEngineType": "benzyna",
+    "carEngineSize": "1.8",
+    "carProductionYear": "2005",
+    "carPrice": "19000"
+  },
+  "6": {
+    "carBrand": "Mercedes-Benz",
+    "carModel": "Klasa B",
+    "carBodyType": "suv",
+    "carEngineType": "diesel",
+    "carEngineSize": "1.9",
+    "carProductionYear": "2008",
+    "carPrice": "27900"
+  },
+  
+  "7": {
+    "carBrand": "Audi",
+    "carModel": "A4",
+    "carBodyType": "sedan",
+    "carEngineType": "diesel",
+    "carEngineSize": "2.0",
+    "carProductionYear": "2005",
+    "carPrice": "21000"
+  },
+  "8": {
+    "carBrand": "Audi",
+    "carModel": "A6",
+    "carBodyType": "kombi",
+    "carEngineType": "diesel",
+    "carEngineSize": "1.9",
+    "carProductionYear": "2001",
+    "carPrice": "7500"
+  },
+  "9": {
+    "carBrand": "Audi",
+    "carModel": "A8",
+    "carBodyType": "sedan",
+    "carEngineType": "diesel",
+    "carEngineSize": "3.0",
+    "carProductionYear": "2007",
+    "carPrice": "27500"
+  },
+
+  "10": {
+    "carBrand": "Toyota",
+    "carModel": "Yaris",
+    "carBodyType": "hatchback",
+    "carEngineType": "benzyna",
+    "carEngineSize": "1.3",
+    "carProductionYear": "2014",
+    "carPrice": "30000"
+  },
+  "11": {
+    "carBrand": "Toyota",
+    "carModel": "Corolla",
+    "carBodyType": "hatchback",
+    "carEngineType": "benzyna",
+    "carEngineSize": "1.8",
+    "carProductionYear": "2006",
+    "carPrice": "17900"
+  },
+  "12": {
+    "carBrand": "Toyota",
+    "carModel": "RAV4",
+    "carBodyType": "suv",
+    "carEngineType": "diesel",
+    "carEngineSize": "2.0",
+    "carProductionYear": "2005",
+    "carPrice": "18500"
+  }
+}
