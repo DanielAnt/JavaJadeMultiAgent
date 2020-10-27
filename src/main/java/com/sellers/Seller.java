@@ -21,10 +21,34 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public class Seller extends Agent {
 	
 	public List<Car> Cars = new ArrayList<Car>();
+	int agreedableness;
+	int iter;
+	int timeDiscount = 0;
 	
 	protected void setup() {
 		
+		// Sellers characteristics
+		Random rd = new Random();
+		agreedableness = rd.nextInt(10);
+		for(iter = 0; iter < 8; iter++) {
+			Car car = null;
+			try {
+				car = JsonLoader.GenerateCar();
+				car.carExtraPayments = 2000 + rd.nextInt(3000);
+				Cars.add(car);
+			} catch (JsonParseException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
+			
 		System.out.println("Seller-agent "+getAID().getName()+" is ready.");
+		
+		
+		
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
@@ -38,22 +62,24 @@ public class Seller extends Agent {
 		fe.printStackTrace();
 		}
 		
-		
-		for(int i = 0; i < 8; i++) {
-			Car car = null;
-			try {
-				car = JsonLoader.GenerateCar();
-				Random rd = new Random();
-				car.carExtraPayments = rd.nextInt(4000);
-				Cars.add(car);
-			} catch (JsonParseException e) {
-				e.printStackTrace();
-			} catch (JsonMappingException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+		addBehaviour(new CyclicBehaviour(this){
+			public void action() {
+				ACLMessage msg = myAgent.receive();
+				if(msg != null) {
+					System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getContent());
+				}
+				else {
+					block();
+				}
 			}
-	    /*
+		});
+		
+		addBehaviour(new TickerBehaviour(this, 60000) {
+			protected void onTick() {
+				timeDiscount++;
+			}
+			} );
+			    /*
 		addBehaviour(new TickerBehaviour(this, 10000) {
 			protected void onTick() {
 				System.out.println(this.toString());
@@ -63,13 +89,6 @@ public class Seller extends Agent {
 			}
 			} );
 		*/
-				
-			
-		
-			
-		}
-		
 		
 	}
-
 }

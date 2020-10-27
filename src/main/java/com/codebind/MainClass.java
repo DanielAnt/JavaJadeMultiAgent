@@ -23,15 +23,16 @@ public class MainClass {
 		profile.setParameter(Profile.MAIN_HOST, "localhost");
 		profile.setParameter(Profile.GUI, "true");
 		containerController = runtime.createMainContainer(profile);
-		RunnableSeller T1 = new RunnableSeller("Thread-1", containerController, 3);
+		RunnableSeller T1 = new RunnableSeller("Thread-1", containerController, 2);
 		T1.start();
+		CreateBuyers(1);
 	}
 		
-	public static void CreateSellers(int num){
-		for(int i=1; i<num; i++){
+	public static void CreateBuyers(int num){
+		for(int i = 1 ; i < num + 1 ; i++){
 			AgentController Seller;
 	           try {
-	        	   Seller = containerController.createNewAgent("Seller"+i, "com.sellers.Seller", null);
+	        	   Seller = containerController.createNewAgent("Buyer"+i, "com.buyers.Buyer", null);
 	        	   Seller.start();    
 	           } catch (StaleProxyException e) {
 	               e.printStackTrace();
