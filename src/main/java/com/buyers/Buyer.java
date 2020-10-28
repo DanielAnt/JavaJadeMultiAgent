@@ -21,7 +21,7 @@ public class Buyer extends Agent {
 	
 	public List<Car> Cars = new ArrayList<Car>();
 	private int budget = 100000;
-	private Vector sellerAgents = new Vector();
+	private Vector<AID> sellerAgents = new Vector<AID>();
 	int agreedableness;
 	int iter;
 	
@@ -57,8 +57,8 @@ public class Buyer extends Agent {
 		DFAgentDescription[] result = DFService.search(this, template);
 		sellerAgents.clear();
 		for (iter = 0; iter < result.length; ++iter) {
-		sellerAgents.addElement(result[iter].getLocalName());
-		System.out.println(result[iter].getName());
+		sellerAgents.add(result[iter].getName());
+		System.out.println(result[iter]);
 		}
 		}
 		catch (FIPAException fe) {
@@ -66,11 +66,12 @@ public class Buyer extends Agent {
 		}
 		
 		// test message
-		addBehaviour(new TickerBehaviour(this, 10000) {
+		addBehaviour(new TickerBehaviour(this, 1000) {
 			protected void onTick() {
-				for(Object agent: sellerAgents) {
+				for(AID agent: sellerAgents) {
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-					msg.addReceiver(new AID(agent.getClass().getName(), AID.ISLOCALNAME));
+					msg.addReceiver(agent);
+					System.out.println(agent);
 					msg.setLanguage("Polish");
 					msg.setContent("Witaj");
 					send(msg);
@@ -80,7 +81,7 @@ public class Buyer extends Agent {
 		});
 		
 		//Updates sellers list
-		addBehaviour(new TickerBehaviour(this, 60000) {
+		addBehaviour(new TickerBehaviour(this, 1000) {
 			protected void onTick() {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
@@ -90,7 +91,7 @@ public class Buyer extends Agent {
 			DFAgentDescription[] result = DFService.search(myAgent, template);
 			sellerAgents.clear();
 			for (int i = 0; i < result.length; ++i) {
-			sellerAgents.addElement(result[i]);
+			sellerAgents.add(result[iter].getName());
 			}
 			}
 			catch (FIPAException fe) {
