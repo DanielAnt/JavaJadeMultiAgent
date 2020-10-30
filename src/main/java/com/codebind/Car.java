@@ -12,6 +12,8 @@ public class Car {
 	public String carProductionYear;
 	public int carPrice;
 	public int carExtraPayments;
+	public String owner = "None";
+	public String catalogID = "None";
 		
 	public void PrintAll() {
 		System.out.println(carBrand);
@@ -22,6 +24,8 @@ public class Car {
 		System.out.println(carProductionYear);
 		System.out.println(carPrice);
 		System.out.println(carExtraPayments);
+		System.out.println(owner);
+		System.out.println(catalogID);
 		System.out.println("");
 	}
 	/*
@@ -36,12 +40,27 @@ public class Car {
     */
 	@Override
 	public boolean equals(Object obj) {
-		return (this.carBrand.equals(((Car) obj).carBrand)
-				&& this.carModel.equals(((Car) obj).carModel)
-				&& this.carBodyType.equals(((Car) obj).carBodyType)
-				&& this.carEngineType.equals(((Car) obj).carEngineType)
-				&& this.carEngineSize.equals(((Car) obj).carEngineSize)
-				&& this.carProductionYear.equals(((Car) obj).carProductionYear));
+		if ( (this.owner != "None"  &&  this.catalogID != "None" ) && ( ((Car) obj).owner != "None" && ((Car) obj).catalogID != "None") ) {
+			System.out.println("test");
+			return (this.carBrand.equals(((Car) obj).carBrand)
+					&& this.carModel.equals(((Car) obj).carModel)
+					&& this.carBodyType.equals(((Car) obj).carBodyType)
+					&& this.carEngineType.equals(((Car) obj).carEngineType)
+					&& this.carEngineSize.equals(((Car) obj).carEngineSize)
+					&& this.carProductionYear.equals(((Car) obj).carProductionYear)
+					&& this.owner.equals(((Car) obj).owner)
+					&& this.catalogID.equals(((Car) obj).catalogID));
+		}
+		else {
+			System.out.println("test2");
+			return (this.carBrand.equals(((Car) obj).carBrand)
+					&& this.carModel.equals(((Car) obj).carModel)
+					&& this.carBodyType.equals(((Car) obj).carBodyType)
+					&& this.carEngineType.equals(((Car) obj).carEngineType)
+					&& this.carEngineSize.equals(((Car) obj).carEngineSize)
+					&& this.carProductionYear.equals(((Car) obj).carProductionYear));
+		}
+			
     }
 	
 	

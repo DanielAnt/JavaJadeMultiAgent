@@ -36,6 +36,8 @@ public class Seller extends Agent {
 			try {
 				car = JsonLoader.GenerateCar();
 				car.carExtraPayments = 2000 + rd.nextInt(3000);
+				car.owner = this.getName();
+				car.catalogID = String.format("%d", iter);
 				Cars.add(car);
 			} catch (JsonParseException e) {
 				e.printStackTrace();
@@ -70,7 +72,7 @@ public class Seller extends Agent {
 				if(msg != null) {
 					
 					// handles requests for it cars 
-					if(16 == msg.getPerformative()){
+					if(ACLMessage.REQUEST == msg.getPerformative()){
 						ACLMessage reply = msg.createReply();
 						if("show offer".equals(msg.getContent())) {
 							reply.setPerformative(ACLMessage.INFORM);
@@ -86,7 +88,7 @@ public class Seller extends Agent {
 					}
 					
 					// handles buy offers
-					else if(11 == msg.getPerformative()) {
+					else if(ACLMessage.PROPOSE == msg.getPerformative()) {
 						Car carPropose =  null;
 						try {
 							carPropose = JsonLoader.StringToCar(msg.getContent());
@@ -96,7 +98,7 @@ public class Seller extends Agent {
 						ACLMessage reply = msg.createReply();
 						if(Cars.contains(carPropose)) {
 							Cars.remove(carPropose);
-							reply.setPerformative(1);
+							reply.setPerformative(ACLMessage.AGREE);
 							reply.setContent(msg.getContent());
 							myAgent.send(reply);
 						}

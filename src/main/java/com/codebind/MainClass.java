@@ -1,6 +1,8 @@
 package com.codebind;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -15,6 +17,7 @@ import jade.wrapper.StaleProxyException;
 
 public class MainClass {
 	
+	
 	private static ContainerController containerController;
 	
 	public static void main(String[] args) throws JsonParseException, JsonMappingException, IOException{
@@ -26,7 +29,6 @@ public class MainClass {
 		// Initiates seller every 60 sec, up to 8
 		RunnableSeller T1 = new RunnableSeller("Thread-1", containerController, 8, 60000);
 		T1.start();
-		
 		CreateBuyers(1);
 	}
 		

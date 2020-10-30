@@ -23,6 +23,8 @@ public class Buyer extends Agent {
 	
 	public List<Car> myCars = new ArrayList<Car>();
 	public List<Car> boughtCars = new ArrayList<Car>();
+	public List<Car> offersList = new ArrayList<Car>();
+	public List<AID> askedSellers = new ArrayList<AID>();
 	private int budget = 100000;
 	private Vector<AID> sellerAgents = new Vector<AID>();
 	int agreedableness;
@@ -32,7 +34,7 @@ public class Buyer extends Agent {
 	protected void setup() {
 		System.out.println("Buyer-agent "+getAID().getName()+" is ready.");
 		
-		// Buyers characteristics
+		// INIT BUYER
 		Random rd = new Random();
 		agreedableness = rd.nextInt(10);
 		for(iter = 0; iter < 3; iter++) {
@@ -49,9 +51,7 @@ public class Buyer extends Agent {
 				e.printStackTrace();
 			}
 		}
-				
-		
-		// GET SELLERS
+		// GET SELLERS AT INIT
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Car-selling");
@@ -67,19 +67,22 @@ public class Buyer extends Agent {
 		fe.printStackTrace();
 		}
 		
-		// test message
+		
+		// ASK SELLER FOR CAR LIST
 		addBehaviour(new TickerBehaviour(this, 10000) {
 			protected void onTick() {
 				for(AID agent: sellerAgents) {
-					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-					msg.addReceiver(agent);
-					msg.setContent("show offer");
-					send(msg);
+					if(!askedSellers.contains(agent)) {
+						ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+						msg.addReceiver(agent);
+						msg.setContent("show offer");
+						send(msg);
+					}					
 				}
 			}
 		});
 		
-		//Updates sellers list
+		// UPDATE SELLERS LIST
 		addBehaviour(new TickerBehaviour(this, 100) {
 			protected void onTick() {
 			DFAgentDescription template = new DFAgentDescription();
@@ -101,14 +104,15 @@ public class Buyer extends Agent {
 		
 		
 		
-		// message receive
+		// HANDLE RECEVIED MESSAGES
 		addBehaviour(new CyclicBehaviour(this){
 			public void action() {
 				ACLMessage msg = myAgent.receive();
 				if(msg != null) {
 					
-					//asks for each seller for car list
-					if(7 == msg.getPerformative()){
+					// HANDLE RECEIVED CAR LIST
+					if(ACLMessage.INFORM == msg.getPerformative()){
+						askedSellers.add(msg.getSender());
 						Car[] sellerCars = null;
 						try {
 							sellerCars = JsonLoader.StringToList(msg.getContent());
@@ -152,8 +156,8 @@ public class Buyer extends Agent {
 						}
 					}
 					
-					// handles offers acceptance
-					else if(1 == msg.getPerformative()) {
+					// HANDLE OFFER ACEPTANCE
+					else if(ACLMessage.AGREE == msg.getPerformative()) {
 						Car boughtCar = null;
 						try {
 							boughtCar = JsonLoader.StringToCar(msg.getContent());
