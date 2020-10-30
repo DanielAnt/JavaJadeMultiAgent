@@ -23,8 +23,8 @@ public class Buyer extends Agent {
 	
 	public List<Car> myCars = new ArrayList<Car>();
 	public List<Car> boughtCars = new ArrayList<Car>();
-	public List<Car> offersList = new ArrayList<Car>();
-	public List<AID> askedSellers = new ArrayList<AID>();
+	public List<Car> carOffers = new ArrayList<Car>(); // 
+	public List<AID> askedSellers = new ArrayList<AID>(); // sellers already asked for car list
 	private int budget = 100000;
 	private Vector<AID> sellerAgents = new Vector<AID>();
 	int agreedableness;
@@ -83,7 +83,7 @@ public class Buyer extends Agent {
 		});
 		
 		// UPDATE SELLERS LIST
-		addBehaviour(new TickerBehaviour(this, 100) {
+		addBehaviour(new TickerBehaviour(this, 5000) {
 			protected void onTick() {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
@@ -102,6 +102,41 @@ public class Buyer extends Agent {
 			}
 			} );
 		
+		//  SENDS BUY OFFERS
+		addBehaviour(new TickerBehaviour(this, 20000) {
+			protected void onTick() {
+				boolean first = true;
+				for(Car carToBuy: myCars) {
+					Car chosenOffert = null;
+					if(carOffers.contains(carToBuy)) {
+						for(Car offer: carOffers) {
+							if(carToBuy == offer && first == true) {
+								chosenOffert = offer;
+								first = false;
+							}
+							else if(carToBuy == offer && chosenOffert.carExtraPayments > offer.carExtraPayments) {
+								chosenOffert = offer;
+							}
+						}
+					}
+					if (chosenOffert != null) {
+						ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+						msg.addReceiver(new AID(chosenOffert.owner,true));
+						String stringOffer = "";
+						try {
+							stringOffer = JsonLoader.CarToString(chosenOffert);
+						} catch (JsonProcessingException e) {
+							e.printStackTrace();
+						}
+						msg.setContent(stringOffer);
+						myAgent.send(msg);						
+					}
+				}
+			}
+		} );
+		
+		
+		
 		
 		
 		// HANDLE RECEVIED MESSAGES
@@ -113,44 +148,18 @@ public class Buyer extends Agent {
 					// HANDLE RECEIVED CAR LIST
 					if(ACLMessage.INFORM == msg.getPerformative()){
 						askedSellers.add(msg.getSender());
-						Car[] sellerCars = null;
+						Car[] sellersCars = null;
 						try {
-							sellerCars = JsonLoader.StringToList(msg.getContent());
+							sellersCars = JsonLoader.StringToList(msg.getContent());
 						} catch (JsonMappingException e) {
 							e.printStackTrace();
 						} catch (JsonProcessingException e) {
 							e.printStackTrace();
 						}
-						if(sellerCars != null) {
-							List<Car> carsToBuy =   new ArrayList<Car>();
-							for(Car aCar: sellerCars) {
-								if(myCars.contains(aCar)) {
-									if(!carsToBuy.contains(aCar)) {
-										carsToBuy.add(aCar);
-									}
-									else {
-										for(Car compareCar: carsToBuy) {
-											if(aCar == compareCar) {
-												if(aCar.carExtraPayments > compareCar.carExtraPayments) {
-													carsToBuy.remove(compareCar);
-													carsToBuy.add(aCar);
-												}
-											}
-										}
-									}
-								}
-							}
-							sellersCars.put(msg.getSender().getName(), carsToBuy);
-							for(Map.Entry<String, List<Car>> entry: sellersCars.entrySet()) {
-								for(Car aCar: entry.getValue()) {
-									ACLMessage offerMessage = new ACLMessage(ACLMessage.PROPOSE);
-									offerMessage.addReceiver(new AID(entry.getKey(), true));
-									try {
-										offerMessage.setContent(JsonLoader.CarToString(aCar));
-									} catch (JsonProcessingException e) {
-										e.printStackTrace();
-									}
-									send(offerMessage);							
+						if(sellersCars != null) {
+							for(Car aCar: sellersCars) {
+								if(!carOffers.contains(aCar) && myCars.contains(aCar)) {
+									carOffers.add(aCar);
 								}
 							}
 						}
@@ -169,6 +178,18 @@ public class Buyer extends Agent {
 						boughtCars.add(boughtCar);
 						System.out.println("Bought car, current budget = " + budget);
 					}
+					
+					else if(ACLMessage.FAILURE == msg.getPerformative()) {
+						Car unavaiableCar = null;
+						try {
+							unavaiableCar = JsonLoader.StringToCar(msg.getContent());
+						} catch (JsonProcessingException e) {
+							e.printStackTrace();
+						}
+						carOffers.remove(unavaiableCar);
+					}
+					
+					
 					System.out.println("buyer dosta³ wiadomoœæ " + msg.getPerformative());
 				}
 				else {

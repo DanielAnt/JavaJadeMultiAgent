@@ -89,21 +89,26 @@ public class Seller extends Agent {
 					
 					// handles buy offers
 					else if(ACLMessage.PROPOSE == msg.getPerformative()) {
-						Car carPropose =  null;
-						try {
-							carPropose = JsonLoader.StringToCar(msg.getContent());
-						} catch (JsonProcessingException e) {
-							e.printStackTrace();
+						if(msg.getContent() != "") {
+							Car carPropose =  null;
+							try {
+								carPropose = JsonLoader.StringToCar(msg.getContent());
+							} catch (JsonProcessingException e) {
+								e.printStackTrace();
+							}
+							ACLMessage reply = msg.createReply();
+							if(Cars.contains(carPropose)) {
+								Cars.remove(carPropose);
+								reply.setPerformative(ACLMessage.AGREE);
+								reply.setContent(msg.getContent());
+								myAgent.send(reply);
+							}
+							else {
+								reply.setPerformative(ACLMessage.FAILURE);
+								reply.setContent(msg.getContent());
+								myAgent.send(reply);
+							}
 						}
-						ACLMessage reply = msg.createReply();
-						if(Cars.contains(carPropose)) {
-							Cars.remove(carPropose);
-							reply.setPerformative(ACLMessage.AGREE);
-							reply.setContent(msg.getContent());
-							myAgent.send(reply);
-						}
-						
-						
 					}
 					
 					System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getPerformative());
