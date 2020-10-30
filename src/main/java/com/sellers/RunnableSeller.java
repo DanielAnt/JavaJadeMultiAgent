@@ -10,11 +10,13 @@ public class RunnableSeller extends  Thread  {
 	private String threadName;
 	private ContainerController containerController;
 	private int agentsNumber;
+	private int sleepTime;
 	
-	public RunnableSeller( String name, ContainerController aContainerController, int aAgentsNumber) {
+	public RunnableSeller( String name, ContainerController aContainerController, int aAgentsNumber, int aSleepTime) {
 		threadName = name;
 		containerController = aContainerController;
 		agentsNumber = aAgentsNumber;
+		sleepTime = aSleepTime;
 		System.out.println("Seller spawner started");
 	}
 	   
@@ -30,7 +32,7 @@ public class RunnableSeller extends  Thread  {
         	 catch (StaleProxyException e) {
         		 e.printStackTrace();
         		 }
-        	 Thread.sleep(1);
+        	 Thread.sleep(sleepTime);
         	 }
          } catch (InterruptedException e) {
         	 System.out.println("Thread " +  threadName + " interrupted.");

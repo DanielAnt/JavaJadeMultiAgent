@@ -30,6 +30,14 @@ public class JsonLoader {
 		return car;
 	}
 	
+	public static Car StringToCar(String aString) throws JsonProcessingException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
+		Car loadedCar = objectMapper.readValue(aString, Car.class);
+		return loadedCar;
+		}
+	
+	
 	public static String CarListToString(List<Car> cars) throws JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		String carsString = objectMapper.writeValueAsString(cars);

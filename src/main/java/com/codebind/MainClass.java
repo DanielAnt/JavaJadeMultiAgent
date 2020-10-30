@@ -23,8 +23,10 @@ public class MainClass {
 		profile.setParameter(Profile.MAIN_HOST, "localhost");
 		profile.setParameter(Profile.GUI, "true");
 		containerController = runtime.createMainContainer(profile);
-		RunnableSeller T1 = new RunnableSeller("Thread-1", containerController, 2);
+		// Initiates seller every 60 sec, up to 8
+		RunnableSeller T1 = new RunnableSeller("Thread-1", containerController, 8, 60000);
 		T1.start();
+		
 		CreateBuyers(1);
 	}
 		

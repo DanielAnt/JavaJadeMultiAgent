@@ -28,15 +28,14 @@ public class Seller extends Agent {
 	
 	protected void setup() {
 		
-		// Sellers characteristics
+		// Sellers characteristics, generates cars
 		Random rd = new Random();
 		agreedableness = rd.nextInt(10);
 		for(iter = 0; iter < 8; iter++) {
 			Car car = null;
 			try {
 				car = JsonLoader.GenerateCar();
-				//car.carExtraPayments = 2000 + rd.nextInt(3000);
-				car.carExtraPayments = 0;
+				car.carExtraPayments = 2000 + rd.nextInt(3000);
 				Cars.add(car);
 			} catch (JsonParseException e) {
 				e.printStackTrace();
@@ -50,7 +49,7 @@ public class Seller extends Agent {
 		System.out.println("Seller-agent "+getAID().getName()+" is ready.");
 		
 		
-		
+		//Adds itself to car-selling service
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
@@ -64,23 +63,48 @@ public class Seller extends Agent {
 		fe.printStackTrace();
 		}
 		
+		//checks for new messages
 		addBehaviour(new CyclicBehaviour(this){
 			public void action() {
 				ACLMessage msg = myAgent.receive();
 				if(msg != null) {
-					ACLMessage reply = msg.createReply();
-					if("show offer".equals(msg.getContent())) {
-						reply.setPerformative(ACLMessage.INFORM);
-						String carString = "";
+					
+					// handles requests for it cars 
+					if(16 == msg.getPerformative()){
+						ACLMessage reply = msg.createReply();
+						if("show offer".equals(msg.getContent())) {
+							reply.setPerformative(ACLMessage.INFORM);
+							String carString = "";
+							try {
+								carString = JsonLoader.CarListToString(Cars);
+							} catch (JsonProcessingException e) {
+								e.printStackTrace();
+							}
+							reply.setContent(carString);
+							myAgent.send(reply);
+						}
+					}
+					
+					// handles buy offers
+					else if(11 == msg.getPerformative()) {
+						Car carPropose =  null;
 						try {
-							carString = JsonLoader.CarListToString(Cars);
+							carPropose = JsonLoader.StringToCar(msg.getContent());
 						} catch (JsonProcessingException e) {
 							e.printStackTrace();
 						}
-						reply.setContent(carString);
-						myAgent.send(reply);
+						ACLMessage reply = msg.createReply();
+						if(Cars.contains(carPropose)) {
+							Cars.remove(carPropose);
+							reply.setPerformative(1);
+							reply.setContent(msg.getContent());
+							myAgent.send(reply);
+						}
+						
+						
 					}
-					System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getContent());
+					
+					System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getPerformative());
 				}
 				else {
 					block();
