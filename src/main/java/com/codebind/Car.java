@@ -22,5 +22,27 @@ public class Car {
 		System.out.println(carProductionYear);
 		System.out.println(carPrice);
 		System.out.println(carExtraPayments);
+		System.out.println("");
 	}
+	/*
+	public boolean equals(Car obj) {
+        return (this.carBrand.equals(obj.carBrand)
+                && this.carModel.equals(obj.carModel) 
+                && this.carBodyType.equals(obj.carBodyType) 
+                && this.carEngineSize.contentEquals(obj.carEngineSize) 
+                && this.carEngineType.equals(obj.carEngineType)
+                && this.carProductionYear.equals(obj.carProductionYear));
+    }
+    */
+	@Override
+	public boolean equals(Object obj) {
+		return (this.carBrand.equals(((Car) obj).carBrand)
+				&& this.carModel.equals(((Car) obj).carModel)
+				&& this.carBodyType.equals(((Car) obj).carBodyType)
+				&& this.carEngineType.equals(((Car) obj).carEngineType)
+				&& this.carEngineSize.equals(((Car) obj).carEngineSize)
+				&& this.carProductionYear.equals(((Car) obj).carProductionYear));
+    }
+	
+	
 }

@@ -17,6 +17,7 @@ import java.util.Random;
 
 import com.codebind.*;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 public class Seller extends Agent {
 	
@@ -34,7 +35,8 @@ public class Seller extends Agent {
 			Car car = null;
 			try {
 				car = JsonLoader.GenerateCar();
-				car.carExtraPayments = 2000 + rd.nextInt(3000);
+				//car.carExtraPayments = 2000 + rd.nextInt(3000);
+				car.carExtraPayments = 0;
 				Cars.add(car);
 			} catch (JsonParseException e) {
 				e.printStackTrace();
@@ -66,6 +68,18 @@ public class Seller extends Agent {
 			public void action() {
 				ACLMessage msg = myAgent.receive();
 				if(msg != null) {
+					ACLMessage reply = msg.createReply();
+					if("show offer".equals(msg.getContent())) {
+						reply.setPerformative(ACLMessage.INFORM);
+						String carString = "";
+						try {
+							carString = JsonLoader.CarListToString(Cars);
+						} catch (JsonProcessingException e) {
+							e.printStackTrace();
+						}
+						reply.setContent(carString);
+						myAgent.send(reply);
+					}
 					System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getContent());
 				}
 				else {

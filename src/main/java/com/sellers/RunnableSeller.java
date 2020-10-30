@@ -30,7 +30,7 @@ public class RunnableSeller extends  Thread  {
         	 catch (StaleProxyException e) {
         		 e.printStackTrace();
         		 }
-        	 Thread.sleep(1000);
+        	 Thread.sleep(1);
         	 }
          } catch (InterruptedException e) {
         	 System.out.println("Thread " +  threadName + " interrupted.");

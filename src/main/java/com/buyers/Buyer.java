@@ -6,10 +6,12 @@ import java.util.*;
 import com.codebind.Car;
 import com.codebind.JsonLoader;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -31,11 +33,12 @@ public class Buyer extends Agent {
 		// Buyers characteristics
 		Random rd = new Random();
 		agreedableness = rd.nextInt(10);
-		for(iter = 0; iter < 3; iter++) {
+		for(iter = 0; iter < 15; iter++) {
 			Car car = null;
 			try {
 				car = JsonLoader.GenerateCar();
-				car.carExtraPayments = rd.nextInt(3000);
+				//car.carExtraPayments = rd.nextInt(3000);
+				car.carExtraPayments = 0;
 				Cars.add(car);
 			} catch (JsonParseException e) {
 				e.printStackTrace();
@@ -45,8 +48,7 @@ public class Buyer extends Agent {
 				e.printStackTrace();
 			}
 		}
-			
-		
+				
 		
 		// GET SELLERS
 		DFAgentDescription template = new DFAgentDescription();
@@ -58,7 +60,6 @@ public class Buyer extends Agent {
 		sellerAgents.clear();
 		for (iter = 0; iter < result.length; ++iter) {
 		sellerAgents.add(result[iter].getName());
-		System.out.println(result[iter]);
 		}
 		}
 		catch (FIPAException fe) {
@@ -66,22 +67,19 @@ public class Buyer extends Agent {
 		}
 		
 		// test message
-		addBehaviour(new TickerBehaviour(this, 1000) {
+		addBehaviour(new TickerBehaviour(this, 10000) {
 			protected void onTick() {
 				for(AID agent: sellerAgents) {
-					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 					msg.addReceiver(agent);
-					System.out.println(agent);
-					msg.setLanguage("Polish");
-					msg.setContent("Witaj");
+					msg.setContent("show offer");
 					send(msg);
-					System.out.println(agent + " do wys³ana");
 				}
 			}
 		});
 		
 		//Updates sellers list
-		addBehaviour(new TickerBehaviour(this, 1000) {
+		addBehaviour(new TickerBehaviour(this, 100) {
 			protected void onTick() {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
@@ -90,7 +88,7 @@ public class Buyer extends Agent {
 			try {
 			DFAgentDescription[] result = DFService.search(myAgent, template);
 			sellerAgents.clear();
-			for (int i = 0; i < result.length; ++i) {
+			for (iter = 0; iter < result.length; iter++) {
 			sellerAgents.add(result[iter].getName());
 			}
 			}
@@ -101,6 +99,33 @@ public class Buyer extends Agent {
 			} );
 		
 		
+		
+		// message receive
+		addBehaviour(new CyclicBehaviour(this){
+			public void action() {
+				ACLMessage msg = myAgent.receive();
+				if(msg != null) {
+					Car[] testCars = null;
+					try {
+						testCars = JsonLoader.StringToList(msg.getContent());
+					} catch (JsonMappingException e) {
+						e.printStackTrace();
+					} catch (JsonProcessingException e) {
+						e.printStackTrace();
+					}
+					if(testCars != null) {
+						for(Car aCar: testCars) {
+							if(Cars.contains(aCar)) {
+								System.out.println("JEST");
+							}
+						}
+					}
+				}
+				else {
+					block();
+				}
+			}
+		});
 		
 		/*
 		// LIST SELLERS
