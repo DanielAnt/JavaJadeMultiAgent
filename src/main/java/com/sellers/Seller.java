@@ -22,15 +22,17 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public class Seller extends Agent {
 	
 	public List<Car> Cars = new ArrayList<Car>();
-	int agreedableness;
+	public List<Car> lockedTrades = new ArrayList<Car>();
+	int agreeableness;
 	int iter;
 	int timeDiscount = 0;
+	int earnings = 0;
 	
 	protected void setup() {
 		
 		// Sellers characteristics, generates cars
 		Random rd = new Random();
-		agreedableness = rd.nextInt(10);
+		agreeableness = rd.nextInt(20);
 		for(iter = 0; iter < 8; iter++) {
 			Car car = null;
 			try {
@@ -98,20 +100,104 @@ public class Seller extends Agent {
 							}
 							ACLMessage reply = msg.createReply();
 							if(Cars.contains(carPropose)) {
-								Cars.remove(carPropose);
-								reply.setPerformative(ACLMessage.AGREE);
-								reply.setContent(msg.getContent());
-								myAgent.send(reply);
+								if(!lockedTrades.contains(carPropose)) {
+									Cars.remove(carPropose);
+									earnings += carPropose.carPrice + carPropose.carExtraPayments;
+									reply.setPerformative(ACLMessage.AGREE);
+									reply.setContent(msg.getContent());
+									myAgent.send(reply);
+								}
 							}
 							else {
-								reply.setPerformative(ACLMessage.FAILURE);
+								reply.setPerformative(ACLMessage.DISCONFIRM);
 								reply.setContent(msg.getContent());
 								myAgent.send(reply);
 							}
 						}
 					}
 					
-					System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getPerformative());
+					// BARGAINING
+					else if(ACLMessage.QUERY_IF == msg.getPerformative()) {
+						if(msg.getContent() != "") {
+							Car carPropose =  null;
+							try {
+								carPropose = JsonLoader.StringToCar(msg.getContent());
+							} catch (JsonProcessingException e) {
+								e.printStackTrace();
+							}
+							
+							int sellerMinimum = carPropose.carExtraPayments * (100 - agreeableness - timeDiscount)/100;
+							int buyerMaximum = carPropose.buyerExtraPaymentsOffer * (100 + carPropose.buyerAgreeableness)/100;
+							//System.out.println("BARGING");
+							//System.out.println(sellerMinimum);
+							//System.out.println(buyerMaximum);
+							if(sellerMinimum < buyerMaximum) {
+								if(agreeableness > carPropose.buyerAgreeableness) {
+									carPropose.carExtraPayments = buyerMaximum;
+								}
+								else {
+									carPropose.carExtraPayments = sellerMinimum;
+								}
+								ACLMessage reply = msg.createReply();
+								String stringCar = "";
+								try {
+									stringCar = JsonLoader.CarToString(carPropose);
+								} catch (JsonProcessingException e) {
+									e.printStackTrace();
+								}
+								if(Cars.contains(carPropose)) {
+									if(!lockedTrades.contains(carPropose)) {
+										lockedTrades.add(carPropose);
+										//System.out.println(myAgent.getName() + " locksDeal");
+										reply.setPerformative(ACLMessage.QUERY_IF);
+										reply.setContent(stringCar);
+										myAgent.send(reply);
+									}
+									else {
+										System.out.print("something is locked");
+									}
+								}
+								else {
+									reply.setPerformative(ACLMessage.DISCONFIRM);
+									reply.setContent(msg.getContent());
+									myAgent.send(reply);
+								}
+							}
+						}
+					}
+					
+					// HANDLE BARGAINING ACEPTANCE
+					else if(ACLMessage.AGREE == msg.getPerformative()) {
+						Car carPropose =  null;
+						try {
+							carPropose = JsonLoader.StringToCar(msg.getContent());
+						} catch (JsonProcessingException e) {
+							e.printStackTrace();
+						}
+						if( carPropose != null) {
+							earnings += carPropose.carPrice + carPropose.carExtraPayments;
+							System.out.println(myAgent.getName() + " REMOVED A CAR FROM LOCKED LIST ");
+							Cars.remove(carPropose);
+							lockedTrades.remove(carPropose);							
+						}
+						
+					}
+					
+					// HANDLE BARGAINING REFUSAL
+					else if(ACLMessage.REFUSE == msg.getPerformative()) {
+						Car carPropose =  null;
+						try {
+							carPropose = JsonLoader.StringToCar(msg.getContent());
+						} catch (JsonProcessingException e) {
+							e.printStackTrace();
+						}
+						if( carPropose != null) {
+							System.out.println(myAgent.getName() + " REMOVED A CAR FROM LOCKED LIST ");
+							lockedTrades.remove(carPropose);							
+						}
+						
+					}
+					//System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getPerformative());
 				}
 				else {
 					block();
@@ -119,7 +205,7 @@ public class Seller extends Agent {
 			}
 		});
 		
-		addBehaviour(new TickerBehaviour(this, 60000) {
+		addBehaviour(new TickerBehaviour(this, 3000) {
 			protected void onTick() {
 				timeDiscount++;
 			}

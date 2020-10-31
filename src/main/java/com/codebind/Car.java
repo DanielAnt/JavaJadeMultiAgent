@@ -12,6 +12,8 @@ public class Car {
 	public String carProductionYear;
 	public int carPrice;
 	public int carExtraPayments;
+	public int buyerAgreeableness;
+	public int buyerExtraPaymentsOffer;
 	public String owner = "None";
 	public String catalogID = "None";
 		
@@ -41,7 +43,6 @@ public class Car {
 	@Override
 	public boolean equals(Object obj) {
 		if ( (this.owner != "None"  &&  this.catalogID != "None" ) && ( ((Car) obj).owner != "None" && ((Car) obj).catalogID != "None") ) {
-			System.out.println("test");
 			return (this.carBrand.equals(((Car) obj).carBrand)
 					&& this.carModel.equals(((Car) obj).carModel)
 					&& this.carBodyType.equals(((Car) obj).carBodyType)
@@ -52,7 +53,6 @@ public class Car {
 					&& this.catalogID.equals(((Car) obj).catalogID));
 		}
 		else {
-			System.out.println("test2");
 			return (this.carBrand.equals(((Car) obj).carBrand)
 					&& this.carModel.equals(((Car) obj).carModel)
 					&& this.carBodyType.equals(((Car) obj).carBodyType)

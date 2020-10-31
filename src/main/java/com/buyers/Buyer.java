@@ -27,7 +27,7 @@ public class Buyer extends Agent {
 	public List<AID> askedSellers = new ArrayList<AID>(); // sellers already asked for car list
 	private int budget = 100000;
 	private Vector<AID> sellerAgents = new Vector<AID>();
-	int agreedableness;
+	int agreeableness;
 	int iter;
 	final Map<String, List<Car>> sellersCars = new HashMap<String, List<Car>>();
 	
@@ -36,7 +36,7 @@ public class Buyer extends Agent {
 		
 		// INIT BUYER
 		Random rd = new Random();
-		agreedableness = rd.nextInt(10);
+		agreeableness = rd.nextInt(20);
 		for(iter = 0; iter < 3; iter++) {
 			Car car = null;
 			try {
@@ -105,33 +105,73 @@ public class Buyer extends Agent {
 		//  SENDS BUY OFFERS
 		addBehaviour(new TickerBehaviour(this, 20000) {
 			protected void onTick() {
-				boolean first = true;
-				for(Car carToBuy: myCars) {
-					Car chosenOffert = null;
-					if(carOffers.contains(carToBuy)) {
-						for(Car offer: carOffers) {
-							if(carToBuy == offer && first == true) {
-								chosenOffert = offer;
-								first = false;
-							}
-							else if(carToBuy == offer && chosenOffert.carExtraPayments > offer.carExtraPayments) {
-								chosenOffert = offer;
-							}
-						}
+				if(myCars.isEmpty()) {
+					System.out.println(myAgent.getName() + " have bought all wanted cars");
+					for(Car aCar: boughtCars) {
+						aCar.PrintAll();
 					}
-					if (chosenOffert != null) {
-						ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
-						msg.addReceiver(new AID(chosenOffert.owner,true));
-						String stringOffer = "";
-						try {
-							stringOffer = JsonLoader.CarToString(chosenOffert);
-						} catch (JsonProcessingException e) {
-							e.printStackTrace();
+					myAgent.doDelete();
+				}
+				else {
+					boolean first = true;
+					for(Car carToBuy: myCars) {
+						Car chosenOffert = null;
+						first = true;
+						if(carOffers.contains(carToBuy)) {
+							for(Car offer: carOffers) {
+								if(carToBuy.equals(offer) && first == true) {
+									chosenOffert = offer;
+									first = false;
+								}
+								else if(carToBuy.equals(offer) && first == false) {
+									if(chosenOffert.carExtraPayments > offer.carExtraPayments) {
+										chosenOffert = offer;
+									}
+									
+								}
+							}
 						}
-						msg.setContent(stringOffer);
-						myAgent.send(msg);						
+						if (chosenOffert != null) {
+							if(carToBuy.carPrice + carToBuy.carExtraPayments < budget || chosenOffert.carPrice + chosenOffert.carExtraPayments < budget) {
+								
+								if(chosenOffert.carExtraPayments < carToBuy.carExtraPayments) {
+									//System.out.println("test1");
+									ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+									msg.addReceiver(new AID(chosenOffert.owner,true));
+									String stringOffer = "";
+									try {
+										stringOffer = JsonLoader.CarToString(chosenOffert);
+									} catch (JsonProcessingException e) {
+										e.printStackTrace();
+									}
+									msg.setContent(stringOffer);
+									myAgent.send(msg);
+								}
+								else {
+									//System.out.println("test2");
+									chosenOffert.buyerAgreeableness = agreeableness;
+									chosenOffert.buyerExtraPaymentsOffer = carToBuy.carExtraPayments;
+									ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
+									msg.addReceiver(new AID(chosenOffert.owner,true));
+									String stringOffer = "";
+									try {
+										stringOffer = JsonLoader.CarToString(chosenOffert);
+									} catch (JsonProcessingException e) {
+										e.printStackTrace();
+									}
+									msg.setContent(stringOffer);
+									myAgent.send(msg);
+								}
+							}
+							else {
+								System.out.println(myAgent.getName() + " DOSNT HAVE ENOUGH MONEY FOR:");
+								chosenOffert.PrintAll();
+							}
+													
+						}
 					}
 				}
+				
 			}
 		} );
 		
@@ -176,10 +216,14 @@ public class Buyer extends Agent {
 						budget -= boughtCar.carExtraPayments + boughtCar.carPrice;
 						myCars.remove(boughtCar);
 						boughtCars.add(boughtCar);
-						System.out.println("Bought car, current budget = " + budget);
+						//System.out.println(myAgent.getName() + " have bought a car:");
+						//boughtCar.PrintAll();
+						//System.out.println("Current budget = " + budget);
 					}
 					
-					else if(ACLMessage.FAILURE == msg.getPerformative()) {
+					// HANDLE OFFER TERMINATED
+					else if(ACLMessage.DISCONFIRM == msg.getPerformative()) {
+						System.out.println(myAgent.getName() + " COULDNT GET A CAR BECASUE IT WAS BOUGHT BEFORE");
 						Car unavaiableCar = null;
 						try {
 							unavaiableCar = JsonLoader.StringToCar(msg.getContent());
@@ -189,8 +233,38 @@ public class Buyer extends Agent {
 						carOffers.remove(unavaiableCar);
 					}
 					
-					
-					System.out.println("buyer dosta³ wiadomoœæ " + msg.getPerformative());
+					// HANDLE BARGAINING OFFER
+					else if(ACLMessage.QUERY_IF == msg.getPerformative()) {
+						Car carOffer = null;
+						if(msg.getContent() != "") {
+							try {
+								carOffer = JsonLoader.StringToCar(msg.getContent());
+							} catch (JsonProcessingException e) {
+								e.printStackTrace();
+							}
+							if(carOffer.carPrice + carOffer.carExtraPayments < budget) {
+								budget -= carOffer.carExtraPayments + carOffer.carPrice;
+								myCars.remove(carOffer);
+								boughtCars.add(carOffer);
+								//System.out.println(myAgent.getName() + " have bought a car after a bargaining:");
+								//carOffer.PrintAll();
+								//System.out.println("Current budget = " + budget);
+								ACLMessage reply = msg.createReply();
+								reply.setPerformative(ACLMessage.AGREE);
+								reply.setContent(msg.getContent());
+								myAgent.send(reply);
+							}
+							else {
+								ACLMessage reply = msg.createReply();
+								reply.setPerformative(ACLMessage.REFUSE);
+								reply.setContent(msg.getContent());
+								myAgent.send(reply);
+							}
+							
+							
+						}
+					}
+					//System.out.println("buyer dosta³ wiadomoœæ " + msg.getPerformative());
 				}
 				else {
 					block();
