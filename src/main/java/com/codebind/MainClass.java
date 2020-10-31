@@ -27,9 +27,11 @@ public class MainClass {
 		profile.setParameter(Profile.GUI, "true");
 		containerController = runtime.createMainContainer(profile);
 		// Initiates seller every 60 sec, up to 8
+		CreateBuyers(3);
 		RunnableSeller T1 = new RunnableSeller("Thread-1", containerController, 8, 10000);
 		T1.start();
-		CreateBuyers(3);
+		
+
 	}
 		
 	public static void CreateBuyers(int num){

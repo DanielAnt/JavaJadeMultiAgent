@@ -51,22 +51,21 @@ public class Buyer extends Agent {
 				e.printStackTrace();
 			}
 		}
-		// GET SELLERS AT INIT
-		DFAgentDescription template = new DFAgentDescription();
+		
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
-		sd.setType("Car-selling");
-		template.addServices(sd);
+		sd.setType("Car-buyers");
+		sd.setName(getLocalName()+"-Car-buyers");
+		dfd.addServices(sd);
 		try {
-		DFAgentDescription[] result = DFService.search(this, template);
-		sellerAgents.clear();
-		for (iter = 0; iter < result.length; ++iter) {
-		sellerAgents.add(result[iter].getName());
-		}
+		DFService.register(this, dfd);
 		}
 		catch (FIPAException fe) {
 		fe.printStackTrace();
 		}
 		
+				
 		
 		// ASK SELLER FOR CAR LIST
 		addBehaviour(new TickerBehaviour(this, 10000) {
@@ -216,7 +215,7 @@ public class Buyer extends Agent {
 						budget -= boughtCar.carExtraPayments + boughtCar.carPrice;
 						myCars.remove(boughtCar);
 						boughtCars.add(boughtCar);
-						//System.out.println(myAgent.getName() + " have bought a car:");
+						System.out.println(myAgent.getName() + " have bought a car:");
 						//boughtCar.PrintAll();
 						//System.out.println("Current budget = " + budget);
 					}
@@ -246,7 +245,7 @@ public class Buyer extends Agent {
 								budget -= carOffer.carExtraPayments + carOffer.carPrice;
 								myCars.remove(carOffer);
 								boughtCars.add(carOffer);
-								//System.out.println(myAgent.getName() + " have bought a car after a bargaining:");
+								System.out.println(myAgent.getName() + " have bought a car after a bargaining:");
 								//carOffer.PrintAll();
 								//System.out.println("Current budget = " + budget);
 								ACLMessage reply = msg.createReply();
@@ -260,9 +259,16 @@ public class Buyer extends Agent {
 								reply.setContent(msg.getContent());
 								myAgent.send(reply);
 							}
-							
-							
 						}
+					}
+					else if(25 == msg.getPerformative()) {
+						Car carToRemove = null;
+						try {
+							carToRemove = JsonLoader.StringToCar(msg.getContent());
+						} catch (JsonProcessingException e) {
+							e.printStackTrace();
+						}
+						carOffers.remove(carToRemove);
 					}
 					//System.out.println("buyer dosta³ wiadomoœæ " + msg.getPerformative());
 				}

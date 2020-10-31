@@ -1,4 +1,5 @@
 package com.sellers;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Vector;
 
 import com.codebind.*;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -23,6 +25,7 @@ public class Seller extends Agent {
 	
 	public List<Car> Cars = new ArrayList<Car>();
 	public List<Car> lockedTrades = new ArrayList<Car>();
+	private Vector<AID> buyerAgents = new Vector<AID>();
 	int agreeableness;
 	int iter;
 	int timeDiscount = 0;
@@ -33,7 +36,7 @@ public class Seller extends Agent {
 		// Sellers characteristics, generates cars
 		Random rd = new Random();
 		agreeableness = rd.nextInt(20);
-		for(iter = 0; iter < 8; iter++) {
+		for(iter = 0; iter < 10; iter++) {
 			Car car = null;
 			try {
 				car = JsonLoader.GenerateCar();
@@ -67,6 +70,26 @@ public class Seller extends Agent {
 		fe.printStackTrace();
 		}
 		
+		//Adds buyeragents
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd2 = new ServiceDescription();
+		sd.setType("Car-buyers");
+		template.addServices(sd2);
+		try {
+		DFAgentDescription[] result = DFService.search(this, template);
+		buyerAgents.clear();
+		for (iter = 0; iter < result.length; ++iter) {
+		buyerAgents.add(result[iter].getName());
+		}
+		}
+		catch (FIPAException fe) {
+		fe.printStackTrace();
+		}
+		
+		
+		
+		
+		
 		//checks for new messages
 		addBehaviour(new CyclicBehaviour(this){
 			public void action() {
@@ -89,7 +112,7 @@ public class Seller extends Agent {
 						}
 					}
 					
-					// handles buy offers
+					// HANDLES BUY OFFERS
 					else if(ACLMessage.PROPOSE == msg.getPerformative()) {
 						if(msg.getContent() != "") {
 							Car carPropose =  null;
@@ -102,6 +125,12 @@ public class Seller extends Agent {
 							if(Cars.contains(carPropose)) {
 								if(!lockedTrades.contains(carPropose)) {
 									Cars.remove(carPropose);
+									for(AID buyerAgent: buyerAgents) {
+										ACLMessage removeCarMessage = new ACLMessage(25);
+										removeCarMessage.addReceiver(buyerAgent);
+										removeCarMessage.setContent(msg.getContent());
+										send(removeCarMessage);
+									}
 									earnings += carPropose.carPrice + carPropose.carExtraPayments;
 									reply.setPerformative(ACLMessage.AGREE);
 									reply.setContent(msg.getContent());
@@ -128,9 +157,9 @@ public class Seller extends Agent {
 							
 							int sellerMinimum = carPropose.carExtraPayments * (100 - agreeableness - timeDiscount)/100;
 							int buyerMaximum = carPropose.buyerExtraPaymentsOffer * (100 + carPropose.buyerAgreeableness)/100;
-							//System.out.println("BARGING");
-							//System.out.println(sellerMinimum);
-							//System.out.println(buyerMaximum);
+							System.out.println("BARGING");
+							System.out.println(sellerMinimum);
+							System.out.println(buyerMaximum);
 							if(sellerMinimum < buyerMaximum) {
 								if(agreeableness > carPropose.buyerAgreeableness) {
 									carPropose.carExtraPayments = buyerMaximum;
@@ -148,7 +177,6 @@ public class Seller extends Agent {
 								if(Cars.contains(carPropose)) {
 									if(!lockedTrades.contains(carPropose)) {
 										lockedTrades.add(carPropose);
-										//System.out.println(myAgent.getName() + " locksDeal");
 										reply.setPerformative(ACLMessage.QUERY_IF);
 										reply.setContent(stringCar);
 										myAgent.send(reply);
@@ -176,8 +204,13 @@ public class Seller extends Agent {
 						}
 						if( carPropose != null) {
 							earnings += carPropose.carPrice + carPropose.carExtraPayments;
-							System.out.println(myAgent.getName() + " REMOVED A CAR FROM LOCKED LIST ");
 							Cars.remove(carPropose);
+							for(AID buyerAgent: buyerAgents) {
+								ACLMessage removeCarMessage = new ACLMessage(25);
+								removeCarMessage.addReceiver(buyerAgent);
+								removeCarMessage.setContent(msg.getContent());
+								send(removeCarMessage);
+							}							
 							lockedTrades.remove(carPropose);							
 						}
 						
@@ -192,11 +225,11 @@ public class Seller extends Agent {
 							e.printStackTrace();
 						}
 						if( carPropose != null) {
-							System.out.println(myAgent.getName() + " REMOVED A CAR FROM LOCKED LIST ");
 							lockedTrades.remove(carPropose);							
 						}
-						
-					}
+										
+					}					
+										
 					//System.out.println(getAID().getName() + " dosta³em wiadomoœæ " + msg.getPerformative());
 				}
 				else {
